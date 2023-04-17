@@ -30,7 +30,7 @@ public class Debug {
     public static final String STOP_GRUND = "stop-grund";
 
     /**
-     * Feld welche gescanned wurde.
+     * Felder welche gescanned wurde.
      */
     public static final String SCANNED_FIELD = "scanned-field";
     private final HashMap<String, ArrayList<Object>> debug;
