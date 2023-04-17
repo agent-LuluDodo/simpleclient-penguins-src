@@ -85,5 +85,4 @@ public class Starter {
     System.out.println("Beispiel: \n"
             + "java -jar " + jarName + " --host 127.0.0.1 --port 10500 --reservation 1234\n");
   }
-
 }

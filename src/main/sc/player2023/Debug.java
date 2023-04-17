@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sc.player2023.logic.Logic;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
+
 public class Debug {
     public interface DebugAction {
         void perform();
@@ -26,51 +29,51 @@ public class Debug {
      */
     public static final String STOP_GRUND = "stop-grund";
 
-    private final List<String> debug;
+    /**
+     * Feld welche gescanned wurde.
+     */
+    public static final String SCANNED_FIELD = "scanned-field";
+    private final HashMap<String, ArrayList<Object>> debug;
     public Debug(String... debug) {
-        this.debug = Arrays.asList(debug);
+        this.debug = new HashMap<>();
+        for (String debugOption:debug) {
+            this.debug.put(debugOption, new ArrayList<>());
+        }
     }
 
-    public void log(String id, Object... args) {
-        if (!debug.contains(id)) {
+    public void log(String id) {
+        if (!debug.containsKey(id)) {
             return;
         }
         log.info("DEBUG {}:", id);
         switch (id) {
-            case ANZAHL_FISCHE:
-                anzahlFische(args);
-                break;
-            case ANZAHL_FELDER:
-                anzahlFelder(args);
-                break;
-            case STOP_GRUND:
-                stopGrund(args);
-                break;
+            case ANZAHL_FISCHE -> anzahlFische(getArgs(id));
+            case ANZAHL_FELDER -> anzahlFelder(getArgs(id));
+            case STOP_GRUND -> stopGrund(getArgs(id));
+            case SCANNED_FIELD -> scannedField(getArgs(id));
         }
         log.info("");
     }
 
-    public void action(String id, DebugAction action) {
-        if (debug.contains(id)) {
-            action.perform();
-        }
-    }
-
     private final int[] fixOrderAnzahl = new int[]{5, 4, 1, 0, 3, 2};
     private void anzahlFische(Object[] args) {
-        log.info("  {} {} Fische!", args[0], args[1]);
-        displayHex((Object[]) args[2], fixOrderAnzahl);
+        log.info("  {} {} Fische!", args[6], args[7]);
+        displayHex(args, fixOrderAnzahl);
     }
 
     private void anzahlFelder(Object[] args) {
-        displayHex((Object[]) args[0], fixOrderAnzahl);
+        displayHex(args, fixOrderAnzahl);
     }
 
     private void stopGrund(Object[] args) {
         log.info("  E: Ende des Boards vertikal erreicht.");
         log.info("  e: Ende des Boards horizontal erreicht.");
         log.info("  O: Besetztes oder leeres Feld erreicht.");
-        displayHex((Object[]) args[0], fixOrderAnzahl);
+        displayHex(args, fixOrderAnzahl);
+    }
+
+    private void scannedField(Object[] args) {
+        log.info("Scanned {}!", args[0]);
     }
 
     /**
@@ -119,6 +122,54 @@ public class Debug {
             log.info("     {}  {}", bl, br);
         } else {
             log.info("    {}  {}", bl, br);
+        }
+    }
+
+    private Object[] getArgs(String id) {
+        return debug.get(id).toArray();
+    }
+
+    public void setArg(String id, int index, Object arg) {
+        if (!debug.containsKey(id)) {
+            return;
+        }
+        List<Object> args = debug.get(id);
+        if (args.size() == index) {
+            args.add(arg);
+        } else {
+            args.set(index, arg);
+        }
+    }
+
+    public void setArg(String id, int index, Consumer<Object> action) {
+        if (!debug.containsKey(id)) {
+            return;
+        }
+        action.accept(debug.get(id).get(index));
+    }
+
+    public void setArg(String id, Object... args) {
+        if (!debug.containsKey(id)) {
+            return;
+        }
+        debug.put(id, new ArrayList<>(List.of(args)));
+    }
+
+    public void countArg(String id, int index, int amount) {
+        if (!debug.containsKey(id)) {
+            return;
+        }
+        Integer count;
+        try {
+            count = (Integer) debug.get(id).get(index);
+        } catch (IndexOutOfBoundsException e) {
+            count = 0;
+        }
+        List<Object> args = debug.get(id);
+        if (args.size() == index) {
+            args.add(count + amount);
+        } else {
+            args.set(index, count + amount);
         }
     }
 }
